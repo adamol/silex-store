@@ -19,8 +19,8 @@ class Repository extends BaseRepository
         return self::TABLE_NAME;
     }
 
-    public function keys()
+    public function columns()
     {
-        return implode(',', self::TABLE_COLUMNS);
+        return self::TABLE_COLUMNS;
     }
 }

@@ -4,6 +4,9 @@ namespace App;
 
 abstract class Repository
 {
+    /**
+     * @var \PDO
+     */
     protected $dbh;
 
     /**
@@ -34,7 +37,7 @@ abstract class Repository
     public function findById($id)
     {
         $stmt = $this->dbh->prepare("
-            SELECT ".$this->keys()." FROM ".$this->table()." WHERE id={$id}
+            SELECT ".$this->keys()." FROM ".$this->table()." WHERE id=?
         ");
 
         $stmt->execute([$id]);
@@ -66,13 +69,41 @@ abstract class Repository
         }
     }
 
+    public function updateById($id, $update)
+    {
+        $setString = '';
+        foreach ($this->columns() as $column) {
+            $value = is_string($update[$column])
+                ? "'".$update[$column]."'"
+                : $update[$column];
+            $setString .= sprintf("%s=%s,", $column, $value);
+        }
+        $setString = rtrim($setString, ','); // remove trailing comma
+
+        $sql = "
+            UPDATE ".$this->table()." SET $setString WHERE id=?
+        ";
+
+        $stmt = $this->dbh->prepare($sql);
+
+        $stmt->execute([$id]);
+    }
+
+    /**
+     * @return string
+     */
+    protected function keys()
+    {
+        return implode(',', $this->columns());
+    }
+
     /**
      * @return string
      */
     abstract protected function table();
 
     /**
-     * @return string
+     * @return array
      */
-    abstract protected function keys();
+    abstract protected function columns();
 }
